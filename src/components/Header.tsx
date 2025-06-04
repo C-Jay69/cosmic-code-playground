@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Menu, X, Users, Zap, LogOut } from 'lucide-react';
+import { Search, Menu, X, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -46,7 +46,7 @@ const Header = () => {
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
               <img 
-                src="/lovable-uploads/6c43b8d1-3f39-4f3e-acf7-8e3d2a1c5b74.png" 
+                src="/lovable-uploads/e7e9c6e5-6ba4-4ef7-9b0f-16e5d5c5e5cd.png" 
                 alt="Vibe Coding Logo" 
                 className="w-10 h-10 object-contain"
               />

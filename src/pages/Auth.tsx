@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Code } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +96,7 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 flex items-center justify-center">
               <img 
-                src="/lovable-uploads/6c43b8d1-3f39-4f3e-acf7-8e3d2a1c5b74.png" 
+                src="/lovable-uploads/e7e9c6e5-6ba4-4ef7-9b0f-16e5d5c5e5cd.png" 
                 alt="Vibe Coding Logo" 
                 className="w-16 h-16 object-contain"
               />
