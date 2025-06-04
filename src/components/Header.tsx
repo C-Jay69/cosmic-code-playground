@@ -1,12 +1,42 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Menu, X, Code, Users, Zap } from 'lucide-react';
+import { Search, Menu, X, Users, Zap, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  const handleAuthClick = () => {
+    navigate('/auth');
+  };
 
   return (
     <header className="bg-white border-b-2 border-brand-light sticky top-0 z-50">
@@ -14,8 +44,12 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-brand-purple to-brand-cyan rounded-lg flex items-center justify-center">
-              <Code className="h-5 w-5 text-white" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/6c43b8d1-3f39-4f3e-acf7-8e3d2a1c5b74.png" 
+                alt="Vibe Coding Logo" 
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <span className="text-2xl font-bold text-brand-gray">Vibe Coding</span>
           </div>
@@ -38,12 +72,25 @@ const Header = () => {
                 className="pl-10 pr-4 py-2 border border-brand-light rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue"
               />
             </div>
-            <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-              Sign In
-            </Button>
-            <Button className="bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90">
-              Start Coding
-            </Button>
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-brand-gray">Welcome, {user.email}</span>
+                <Button variant="outline" onClick={handleSignOut} className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button variant="outline" onClick={handleAuthClick} className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+                  Sign In
+                </Button>
+                <Button onClick={handleAuthClick} className="bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90">
+                  Start Coding
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -63,10 +110,22 @@ const Header = () => {
               <a href="#community" className="text-brand-gray hover:text-brand-cyan">Community</a>
               <a href="#pricing" className="text-brand-gray hover:text-brand-orange">Pricing</a>
               <div className="pt-4 border-t border-brand-light">
-                <Button variant="outline" className="w-full mb-2">Sign In</Button>
-                <Button className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white">
-                  Start Coding
-                </Button>
+                {user ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-brand-gray">Welcome, {user.email}</p>
+                    <Button variant="outline" onClick={handleSignOut} className="w-full">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={handleAuthClick} className="w-full mb-2">Sign In</Button>
+                    <Button onClick={handleAuthClick} className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white">
+                      Start Coding
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
