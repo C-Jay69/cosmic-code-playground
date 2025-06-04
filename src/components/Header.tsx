@@ -17,7 +17,7 @@ const Header = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-brand-purple to-brand-cyan rounded-lg flex items-center justify-center">
               <Code className="h-5 w-5 text-white" />
             </div>
-            <span className="text-2xl font-bold text-brand-gray">CodeSpace</span>
+            <span className="text-2xl font-bold text-brand-gray">Vibe Coding</span>
           </div>
 
           {/* Desktop Navigation */}
