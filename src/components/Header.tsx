@@ -46,9 +46,13 @@ const Header = () => {
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
               <img 
-                src="/lovable-uploads/04bb3b5f-1c87-447e-8a52-a60d5b830e71.png" 
+                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=40&h=40&fit=crop&crop=center" 
                 alt="Vibe Coding Logo" 
-                className="w-10 h-10 object-contain"
+                className="w-10 h-10 object-contain rounded"
+                onError={(e) => {
+                  console.log('Logo failed to load:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
             <span className="text-2xl font-bold text-brand-gray">Vibe Coding</span>

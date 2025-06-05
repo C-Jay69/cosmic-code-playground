@@ -96,9 +96,13 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 flex items-center justify-center">
               <img 
-                src="/lovable-uploads/04bb3b5f-1c87-447e-8a52-a60d5b830e71.png" 
+                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=64&h=64&fit=crop&crop=center" 
                 alt="Vibe Coding Logo" 
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain rounded-lg"
+                onError={(e) => {
+                  console.log('Logo failed to load:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
           </div>
