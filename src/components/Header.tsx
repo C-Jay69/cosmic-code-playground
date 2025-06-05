@@ -46,7 +46,7 @@ const Header = () => {
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
               <img 
-                src="/lovable-uploads/e7e9c6e5-6ba4-4ef7-9b0f-16e5d5c5e5cd.png" 
+                src="/lovable-uploads/04bb3b5f-1c87-447e-8a52-a60d5b830e71.png" 
                 alt="Vibe Coding Logo" 
                 className="w-10 h-10 object-contain"
               />
