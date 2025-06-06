@@ -1,8 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Users, MessageSquare, Heart, Trophy, Star, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CommunitySection = () => {
+  const navigate = useNavigate();
+
+  const handleJoinCommunity = () => {
+    console.log('Join the Community button clicked');
+    // Navigate to auth page to join community
+    navigate('/auth');
+  };
+
   const stats = [
     {
       icon: Users,
@@ -115,6 +124,7 @@ const CommunitySection = () => {
 
         <div className="text-center">
           <Button 
+            onClick={handleJoinCommunity}
             size="lg"
             className="bg-gradient-to-r from-brand-blue to-brand-cyan text-white hover:opacity-90 px-8 py-4 text-lg"
           >

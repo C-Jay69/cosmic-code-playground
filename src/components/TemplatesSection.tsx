@@ -1,8 +1,23 @@
 
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Code, Globe, Smartphone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const TemplatesSection = () => {
+  const navigate = useNavigate();
+
+  const handleUseTemplate = (templateTitle: string) => {
+    console.log(`Use Template button clicked for: ${templateTitle}`);
+    // Navigate to auth page to start using templates
+    navigate('/auth');
+  };
+
+  const handleViewAllTemplates = () => {
+    console.log('View All Templates button clicked');
+    // Navigate to auth page to access all templates
+    navigate('/auth');
+  };
+
   const templates = [
     {
       title: "E-commerce Store",
@@ -78,7 +93,10 @@ const TemplatesSection = () => {
                   ))}
                 </div>
                 
-                <Button className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90">
+                <Button 
+                  onClick={() => handleUseTemplate(template.title)}
+                  className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90"
+                >
                   Use Template
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -89,6 +107,7 @@ const TemplatesSection = () => {
 
         <div className="text-center">
           <Button 
+            onClick={handleViewAllTemplates}
             size="lg"
             variant="outline"
             className="border-2 border-brand-purple text-brand-purple hover:bg-brand-purple hover:text-white px-8 py-4 text-lg"

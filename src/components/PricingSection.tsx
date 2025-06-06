@@ -1,8 +1,22 @@
 
 import { Button } from '@/components/ui/button';
 import { Check, Zap, Crown, Rocket } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const PricingSection = () => {
+  const navigate = useNavigate();
+
+  const handleContactSales = () => {
+    console.log('Contact Enterprise Sales button clicked');
+    // Open mailto link for enterprise sales
+    window.location.href = 'mailto:sales@vibecoding.com?subject=Enterprise Sales Inquiry';
+  };
+
+  const handleUpgrade = (planName: string) => {
+    console.log(`${planName} upgrade button clicked`);
+    navigate('/pricing');
+  };
+
   const plans = [
     {
       name: "Free",
@@ -120,6 +134,7 @@ const PricingSection = () => {
                 </ul>
 
                 <Button 
+                  onClick={() => plan.name === 'Enterprise' ? handleContactSales() : handleUpgrade(plan.name)}
                   className={`w-full py-4 text-lg ${
                     plan.buttonStyle === 'gradient' 
                       ? 'bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90' 
@@ -140,6 +155,7 @@ const PricingSection = () => {
             We offer custom enterprise solutions tailored to your specific needs and requirements.
           </p>
           <Button 
+            onClick={handleContactSales}
             size="lg"
             className="bg-gradient-to-r from-brand-orange to-brand-purple text-white hover:opacity-90 px-8 py-4 text-lg"
           >

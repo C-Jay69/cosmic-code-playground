@@ -93,7 +93,7 @@ const Pricing = () => {
       ],
       buttonText: "Upgrade to Boss Teams",
       color: "brand-orange",
-      popular: false // Make this popular like Pro plan for same styling
+      popular: false
     }
   ];
 
@@ -291,7 +291,7 @@ const Pricing = () => {
             <Card 
               key={plan.id}
               className={`relative hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 ${
-                plan.popular ? 'border-2 border-brand-purple' : 'border border-brand-light'
+                plan.popular || plan.id === 'boss-teams' ? 'border-2 border-brand-purple' : 'border border-brand-light'
               } ${currentPlan === plan.id ? 'ring-2 ring-green-500' : ''}`}
             >
               {plan.popular && (
