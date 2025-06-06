@@ -1,15 +1,19 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Menu, X, LogOut } from 'lucide-react';
+import { Search, Menu, X, LogOut, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { Badge } from '@/components/ui/badge';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const { subscription } = useSubscription();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Get current session
@@ -18,13 +22,13 @@ const Header = () => {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => authSubscription.unsubscribe();
   }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -38,12 +42,22 @@ const Header = () => {
     navigate('/auth');
   };
 
+  const handlePricingClick = () => {
+    navigate('/pricing');
+  };
+
+  const handleAdminClick = () => {
+    navigate('/admin');
+  };
+
+  const isOnPricingPage = location.pathname === '/pricing';
+
   return (
     <header className="bg-white border-b-2 border-brand-light sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-10 h-10 flex items-center justify-center">
               <img 
                 src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=40&h=40&fit=crop&crop=center" 
@@ -63,7 +77,12 @@ const Header = () => {
             <a href="#explore" className="text-brand-gray hover:text-brand-blue transition-colors">Explore</a>
             <a href="#templates" className="text-brand-gray hover:text-brand-purple transition-colors">Templates</a>
             <a href="#community" className="text-brand-gray hover:text-brand-cyan transition-colors">Community</a>
-            <a href="#pricing" className="text-brand-gray hover:text-brand-orange transition-colors">Pricing</a>
+            <button 
+              onClick={handlePricingClick}
+              className="text-brand-gray hover:text-brand-orange transition-colors"
+            >
+              Pricing
+            </button>
           </nav>
 
           {/* Search and Actions */}
@@ -78,12 +97,44 @@ const Header = () => {
             </div>
             
             {user ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-brand-gray">Welcome, {user.email}</span>
-                <Button variant="outline" onClick={handleSignOut} className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
+              <div className="flex items-center space-x-4">
+                {/* Subscription Status */}
+                {subscription && (
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant={subscription.subscription_tier === 'starter' ? 'secondary' : 'default'}
+                      className={
+                        subscription.subscription_tier === 'pro' ? 'bg-purple-500' :
+                        subscription.subscription_tier === 'boss-teams' ? 'bg-orange-500' :
+                        'bg-gray-500'
+                      }
+                    >
+                      {subscription.subscription_tier.charAt(0).toUpperCase() + subscription.subscription_tier.slice(1)}
+                      {subscription.is_admin && ' (Admin)'}
+                    </Badge>
+                    {!isOnPricingPage && (
+                      <Button size="sm" variant="outline" onClick={handlePricingClick}>
+                        {subscription.subscription_tier === 'starter' ? 'Upgrade' : 'Manage'}
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Admin Button */}
+                {subscription?.is_admin && (
+                  <Button size="sm" variant="outline" onClick={handleAdminClick}>
+                    <Settings className="h-4 w-4 mr-1" />
+                    Admin
+                  </Button>
+                )}
+
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-brand-gray">Welcome, {user.email}</span>
+                  <Button variant="outline" onClick={handleSignOut} className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
               </div>
             ) : (
               <>
@@ -112,11 +163,33 @@ const Header = () => {
               <a href="#explore" className="text-brand-gray hover:text-brand-blue">Explore</a>
               <a href="#templates" className="text-brand-gray hover:text-brand-purple">Templates</a>
               <a href="#community" className="text-brand-gray hover:text-brand-cyan">Community</a>
-              <a href="#pricing" className="text-brand-gray hover:text-brand-orange">Pricing</a>
+              <button onClick={handlePricingClick} className="text-brand-gray hover:text-brand-orange text-left">Pricing</button>
+              
               <div className="pt-4 border-t border-brand-light">
                 {user ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    {subscription && (
+                      <div>
+                        <Badge 
+                          variant={subscription.subscription_tier === 'starter' ? 'secondary' : 'default'}
+                          className={
+                            subscription.subscription_tier === 'pro' ? 'bg-purple-500' :
+                            subscription.subscription_tier === 'boss-teams' ? 'bg-orange-500' :
+                            'bg-gray-500'
+                          }
+                        >
+                          {subscription.subscription_tier.charAt(0).toUpperCase() + subscription.subscription_tier.slice(1)}
+                          {subscription.is_admin && ' (Admin)'}
+                        </Badge>
+                      </div>
+                    )}
                     <p className="text-sm text-brand-gray">Welcome, {user.email}</p>
+                    {subscription?.is_admin && (
+                      <Button onClick={handleAdminClick} className="w-full" variant="outline">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Button>
+                    )}
                     <Button variant="outline" onClick={handleSignOut} className="w-full">
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
