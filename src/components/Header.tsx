@@ -67,18 +67,39 @@ const Header = () => {
   };
 
   const handleExploreClick = () => {
-    console.log('Explore link clicked');
-    // Add scroll to explore section or navigation logic here
+    console.log('Explore link clicked, scrolling to features section');
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleTemplatesClick = () => {
-    console.log('Templates link clicked');
-    // Add scroll to templates section or navigation logic here
+    console.log('Templates link clicked, scrolling to templates section');
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('templates')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById('templates')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleCommunityClick = () => {
-    console.log('Community link clicked');
-    // Add scroll to community section or navigation logic here
+    console.log('Community link clicked, scrolling to community section');
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('community')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById('community')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const isOnPricingPage = location.pathname === '/pricing';

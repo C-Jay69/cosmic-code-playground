@@ -92,7 +92,8 @@ const Pricing = () => {
         "Pay-as-you-go for additional usage"
       ],
       buttonText: "Upgrade to Boss Teams",
-      color: "brand-orange"
+      color: "brand-orange",
+      popular: false // Make this popular like Pro plan for same styling
     }
   ];
 
@@ -366,11 +367,11 @@ const Pricing = () => {
                     onClick={() => handleSubscribe(plan.id)}
                     disabled={loading}
                     className={`w-full ${
-                      plan.popular 
+                      (plan.popular || plan.id === 'boss-teams')
                         ? 'bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90' 
                         : ''
                     }`}
-                    variant={plan.popular ? 'default' : 'outline'}
+                    variant={(plan.popular || plan.id === 'boss-teams') ? 'default' : 'outline'}
                   >
                     {loading ? 'Loading...' : plan.buttonText}
                   </Button>
