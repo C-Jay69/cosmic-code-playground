@@ -1,20 +1,47 @@
-
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleStartBuilding = () => {
     console.log('Start Building button clicked');
-    navigate('/auth');
+    try {
+      navigate('/auth');
+      toast({
+        title: "Navigating to Auth",
+        description: "Taking you to the login page...",
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast({
+        title: "Navigation Error",
+        description: "There was an issue navigating to the auth page.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleViewDemo = () => {
     console.log('View Demo button clicked');
-    // Scroll to features section to show demo
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+    // For now, scroll to features section and show a toast explaining
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+      toast({
+        title: "Demo Preview",
+        description: "Check out our powerful features below! Full interactive demo coming soon.",
+      });
+    } else {
+      toast({
+        title: "Demo Not Available",
+        description: "Interactive demo is coming soon! Please explore our features instead.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
