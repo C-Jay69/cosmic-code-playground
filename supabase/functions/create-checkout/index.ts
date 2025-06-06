@@ -21,9 +21,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { plan, billing, couponCode } = await req.json();
-    logStep("Request data", { plan, billing, couponCode });
-
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
@@ -43,29 +40,14 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-
-    // Define pricing based on plan and billing cycle
-    const pricing = {
-      pro: {
-        monthly: { amount: 1995, interval: 'month' }, // $19.95
-        yearly: { amount: 17940, interval: 'year' }   // $179.40 ($14.95/month)
-      },
-      'boss-teams': {
-        monthly: { amount: 2995, interval: 'month' }, // $29.95
-        yearly: { amount: 29940, interval: 'year' }   // $299.40 ($24.95/month)
-      }
-    };
+    const { plan, billing, couponCode } = await req.json();
+    logStep("Request data", { plan, billing, couponCode });
 
     if (plan === 'starter') {
-      throw new Error("Starter plan is free - no payment required");
+      throw new Error("Cannot create checkout for free starter plan");
     }
 
-    const planPricing = pricing[plan as keyof typeof pricing];
-    if (!planPricing) throw new Error("Invalid plan selected");
-
-    const billingPricing = planPricing[billing as keyof typeof planPricing];
-    if (!billingPricing) throw new Error("Invalid billing cycle selected");
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Check for existing customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -73,70 +55,63 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Found existing customer", { customerId });
+    } else {
+      const customer = await stripe.customers.create({ email: user.email });
+      customerId = customer.id;
+      logStep("Created new customer", { customerId });
     }
 
-    // Validate coupon if provided
-    let coupon = null;
+    // Define price data based on plan and billing cycle
+    let priceData;
+    if (plan === 'pro') {
+      priceData = {
+        currency: "usd",
+        product_data: { name: "Pro Plan" },
+        unit_amount: billing === 'yearly' ? 1495 : 1995, // $14.95/month yearly or $19.95/month
+        recurring: { interval: billing === 'yearly' ? 'year' : 'month' },
+      };
+    } else if (plan === 'boss-teams') {
+      priceData = {
+        currency: "usd",
+        product_data: { name: "The Boss Teams" },
+        unit_amount: billing === 'yearly' ? 2495 : 2995, // $24.95/month yearly or $29.95/month
+        recurring: { interval: billing === 'yearly' ? 'year' : 'month' },
+      };
+    } else {
+      throw new Error("Invalid plan specified");
+    }
+
+    // Create checkout session
+    const sessionData: any = {
+      customer: customerId,
+      line_items: [
+        {
+          price_data: priceData,
+          quantity: 1,
+        },
+      ],
+      mode: "subscription",
+      success_url: `${req.headers.get("origin")}/pricing?success=true`,
+      cancel_url: `${req.headers.get("origin")}/pricing?canceled=true`,
+    };
+
+    // Apply coupon if provided
     if (couponCode) {
-      const { data: couponData } = await supabaseClient
+      const { data: coupon } = await supabaseClient
         .from('coupons')
         .select('*')
         .eq('code', couponCode.toUpperCase())
         .eq('active', true)
         .single();
 
-      if (couponData) {
-        const now = new Date();
-        const expiresAt = couponData.expires_at ? new Date(couponData.expires_at) : null;
-        if (!expiresAt || expiresAt > now) {
-          coupon = couponData;
-          logStep("Valid coupon found", { code: couponCode, discount: coupon.discount_percentage });
-        }
+      if (coupon) {
+        const stripeCoupon = await stripe.coupons.create({
+          percent_off: coupon.discount_percentage,
+          duration: 'once',
+        });
+        sessionData.discounts = [{ coupon: stripeCoupon.id }];
+        logStep("Applied coupon", { couponCode, discount: coupon.discount_percentage });
       }
-    }
-
-    // Create Stripe coupon if we have a valid one
-    let stripeCouponId = null;
-    if (coupon) {
-      const stripeCoupon = await stripe.coupons.create({
-        percent_off: coupon.discount_percentage,
-        duration: 'once',
-        name: `${coupon.discount_percentage}% off`,
-      });
-      stripeCouponId = stripeCoupon.id;
-    }
-
-    const sessionData: any = {
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: plan === 'pro' ? 'Pro Plan' : 'The Boss Teams Plan',
-              description: plan === 'pro' 
-                ? 'Full Agent access, unlimited apps, $20 monthly credits'
-                : 'Everything in Pro + $30 monthly credits, 50 viewer seats, role-based access'
-            },
-            unit_amount: billingPricing.amount,
-            recurring: { interval: billingPricing.interval },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${req.headers.get("origin")}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/pricing`,
-      metadata: {
-        user_id: user.id,
-        plan: plan,
-        billing: billing,
-      },
-    };
-
-    if (stripeCouponId) {
-      sessionData.discounts = [{ coupon: stripeCouponId }];
     }
 
     const session = await stripe.checkout.sessions.create(sessionData);

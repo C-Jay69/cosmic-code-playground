@@ -40,41 +40,11 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user is admin (gets free access)
-    const { data: adminData } = await supabaseClient
-      .from('admin_users')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (adminData) {
-      logStep("Admin user detected - granting full access");
-      await supabaseClient.from("subscribers").upsert({
-        email: user.email,
-        user_id: user.id,
-        stripe_customer_id: null,
-        subscribed: true,
-        subscription_tier: 'boss-teams',
-        subscription_end: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'email' });
-
-      return new Response(JSON.stringify({
-        subscribed: true,
-        subscription_tier: 'boss-teams',
-        subscription_end: null,
-        is_admin: true
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, setting to starter plan");
+      logStep("No customer found, updating unsubscribed state");
       await supabaseClient.from("subscribers").upsert({
         email: user.email,
         user_id: user.id,
@@ -84,6 +54,7 @@ serve(async (req) => {
         subscription_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
+      
       return new Response(JSON.stringify({ 
         subscribed: false, 
         subscription_tier: 'starter',
@@ -102,7 +73,7 @@ serve(async (req) => {
       status: "active",
       limit: 1,
     });
-
+    
     const hasActiveSub = subscriptions.data.length > 0;
     let subscriptionTier = 'starter';
     let subscriptionEnd = null;
@@ -110,19 +81,24 @@ serve(async (req) => {
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Determine tier based on price
+      // Determine subscription tier from price amount
       const priceId = subscription.items.data[0].price.id;
       const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
       
-      if (amount >= 2900) {
+      if (amount >= 2400 && amount <= 3000) { // Boss Teams range ($24.95-$29.95)
         subscriptionTier = 'boss-teams';
-      } else if (amount >= 1900) {
+      } else if (amount >= 1400 && amount <= 2000) { // Pro range ($14.95-$19.95)
         subscriptionTier = 'pro';
+      } else {
+        subscriptionTier = 'starter'; // Fallback
       }
       
-      logStep("Active subscription found", { subscriptionId: subscription.id, tier: subscriptionTier, endDate: subscriptionEnd });
+      logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
+    } else {
+      logStep("No active subscription found");
     }
 
     await supabaseClient.from("subscribers").upsert({
@@ -136,11 +112,11 @@ serve(async (req) => {
     }, { onConflict: 'email' });
 
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
+    
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
-      is_admin: false
+      subscription_end: subscriptionEnd
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

@@ -31,23 +31,54 @@ const Header = () => {
     return () => authSubscription.unsubscribe();
   }, []);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleMenu = () => {
+    console.log('Menu toggle clicked, current state:', isMenuOpen);
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    console.log('Sign out button clicked');
+    try {
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const handleAuthClick = () => {
+    console.log('Auth button clicked, navigating to /auth');
     navigate('/auth');
   };
 
   const handlePricingClick = () => {
+    console.log('Pricing button clicked, navigating to /pricing');
     navigate('/pricing');
   };
 
   const handleAdminClick = () => {
+    console.log('Admin button clicked, navigating to /admin');
     navigate('/admin');
+  };
+
+  const handleLogoClick = () => {
+    console.log('Logo clicked, navigating to /');
+    navigate('/');
+  };
+
+  const handleExploreClick = () => {
+    console.log('Explore link clicked');
+    // Add scroll to explore section or navigation logic here
+  };
+
+  const handleTemplatesClick = () => {
+    console.log('Templates link clicked');
+    // Add scroll to templates section or navigation logic here
+  };
+
+  const handleCommunityClick = () => {
+    console.log('Community link clicked');
+    // Add scroll to community section or navigation logic here
   };
 
   const isOnPricingPage = location.pathname === '/pricing';
@@ -57,7 +88,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center space-x-2 cursor-pointer" onClick={handleLogoClick}>
             <div className="w-10 h-10 flex items-center justify-center">
               <img 
                 src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=40&h=40&fit=crop&crop=center" 
@@ -74,9 +105,24 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#explore" className="text-brand-gray hover:text-brand-blue transition-colors">Explore</a>
-            <a href="#templates" className="text-brand-gray hover:text-brand-purple transition-colors">Templates</a>
-            <a href="#community" className="text-brand-gray hover:text-brand-cyan transition-colors">Community</a>
+            <button 
+              onClick={handleExploreClick}
+              className="text-brand-gray hover:text-brand-blue transition-colors"
+            >
+              Explore
+            </button>
+            <button 
+              onClick={handleTemplatesClick}
+              className="text-brand-gray hover:text-brand-purple transition-colors"
+            >
+              Templates
+            </button>
+            <button 
+              onClick={handleCommunityClick}
+              className="text-brand-gray hover:text-brand-cyan transition-colors"
+            >
+              Community
+            </button>
             <button 
               onClick={handlePricingClick}
               className="text-brand-gray hover:text-brand-orange transition-colors"
@@ -93,6 +139,8 @@ const Header = () => {
                 type="text"
                 placeholder="Search projects..."
                 className="pl-10 pr-4 py-2 border border-brand-light rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                onFocus={() => console.log('Search input focused')}
+                onChange={(e) => console.log('Search query:', e.target.value)}
               />
             </div>
             
@@ -160,10 +208,30 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-brand-light">
             <div className="flex flex-col space-y-4">
-              <a href="#explore" className="text-brand-gray hover:text-brand-blue">Explore</a>
-              <a href="#templates" className="text-brand-gray hover:text-brand-purple">Templates</a>
-              <a href="#community" className="text-brand-gray hover:text-brand-cyan">Community</a>
-              <button onClick={handlePricingClick} className="text-brand-gray hover:text-brand-orange text-left">Pricing</button>
+              <button 
+                onClick={handleExploreClick} 
+                className="text-brand-gray hover:text-brand-blue text-left"
+              >
+                Explore
+              </button>
+              <button 
+                onClick={handleTemplatesClick} 
+                className="text-brand-gray hover:text-brand-purple text-left"
+              >
+                Templates
+              </button>
+              <button 
+                onClick={handleCommunityClick} 
+                className="text-brand-gray hover:text-brand-cyan text-left"
+              >
+                Community
+              </button>
+              <button 
+                onClick={handlePricingClick} 
+                className="text-brand-gray hover:text-brand-orange text-left"
+              >
+                Pricing
+              </button>
               
               <div className="pt-4 border-t border-brand-light">
                 {user ? (

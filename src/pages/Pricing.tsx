@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,13 +9,35 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const Pricing = () => {
-  const { user, subscription } = useSubscription();
+  const { user, subscription, refreshSubscription } = useSubscription();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [couponCode, setCouponCode] = useState('');
+
+  useEffect(() => {
+    // Handle success/cancel from Stripe checkout
+    if (searchParams.get('success') === 'true') {
+      toast({
+        title: "Payment Successful!",
+        description: "Your subscription has been activated. It may take a moment to update.",
+      });
+      setTimeout(() => {
+        refreshSubscription();
+      }, 2000);
+    } else if (searchParams.get('canceled') === 'true') {
+      toast({
+        title: "Payment Canceled",
+        description: "Your subscription was not created. You can try again anytime.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast, refreshSubscription]);
 
   const plans = [
     {
@@ -75,12 +97,16 @@ const Pricing = () => {
   ];
 
   const handleSubscribe = async (planId: string) => {
+    console.log('Subscribe button clicked for plan:', planId);
+    
     if (!user) {
+      console.log('No user found, redirecting to auth');
       toast({
         title: "Authentication Required",
         description: "Please sign in to subscribe to a plan.",
         variant: "destructive",
       });
+      navigate('/auth');
       return;
     }
 
@@ -94,9 +120,14 @@ const Pricing = () => {
 
     setLoading(true);
     try {
+      console.log('Getting session for checkout...');
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session) throw new Error('No session found');
+      if (!session.session) {
+        console.log('No session found');
+        throw new Error('No session found');
+      }
 
+      console.log('Invoking create-checkout function...');
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           plan: planId,
@@ -108,10 +139,14 @@ const Pricing = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Checkout error:', error);
+        throw error;
+      }
 
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      console.log('Checkout session created, redirecting to:', data.url);
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error creating checkout:', error);
       toast({
@@ -125,21 +160,35 @@ const Pricing = () => {
   };
 
   const handleManageSubscription = async () => {
-    if (!user) return;
+    console.log('Manage subscription button clicked');
+    
+    if (!user) {
+      console.log('No user found for subscription management');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('Getting session for customer portal...');
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session) throw new Error('No session found');
+      if (!session.session) {
+        console.log('No session found');
+        throw new Error('No session found');
+      }
 
+      console.log('Invoking customer-portal function...');
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
           Authorization: `Bearer ${session.session.access_token}`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Customer portal error:', error);
+        throw error;
+      }
 
+      console.log('Customer portal session created, opening:', data.url);
       window.open(data.url, '_blank');
     } catch (error) {
       console.error('Error opening customer portal:', error);
@@ -150,6 +199,24 @@ const Pricing = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefreshSubscription = async () => {
+    console.log('Refresh subscription button clicked');
+    try {
+      await refreshSubscription();
+      toast({
+        title: "Subscription Refreshed",
+        description: "Your subscription status has been updated.",
+      });
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh subscription status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -175,7 +242,10 @@ const Pricing = () => {
           <div className="flex items-center justify-center gap-4 mb-8">
             <span className={billingCycle === 'monthly' ? 'font-semibold' : 'text-gray-500'}>Monthly</span>
             <button
-              onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+              onClick={() => {
+                console.log('Billing toggle clicked, changing to:', billingCycle === 'monthly' ? 'yearly' : 'monthly');
+                setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly');
+              }}
               className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2"
             >
               <span
@@ -190,13 +260,27 @@ const Pricing = () => {
           </div>
 
           {/* Coupon Code Input */}
-          <div className="max-w-md mx-auto mb-8">
+          <div className="max-w-md mx-auto mb-4">
             <Input
               placeholder="Enter coupon code (optional)"
               value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                console.log('Coupon code changed:', e.target.value);
+                setCouponCode(e.target.value.toUpperCase());
+              }}
               className="text-center"
             />
+          </div>
+
+          {/* Refresh Subscription Button */}
+          <div className="mb-8">
+            <Button 
+              onClick={handleRefreshSubscription}
+              variant="outline"
+              size="sm"
+            >
+              Refresh Subscription Status
+            </Button>
           </div>
         </div>
 
@@ -242,7 +326,7 @@ const Pricing = () => {
                       <span className="text-brand-gray ml-2">
                         {billingCycle === 'monthly' ? '/month' : '/month'}
                       </span>
-                      {billingCycle === 'yearly' && (
+                      {billingCycle === 'yearly' && plan.yearlyTotal && (
                         <div className="text-sm text-gray-500 mt-1">
                           Billed annually (${plan.yearlyTotal})
                         </div>
@@ -270,7 +354,7 @@ const Pricing = () => {
                       className="w-full"
                       variant="outline"
                     >
-                      Manage Subscription
+                      {loading ? 'Loading...' : 'Manage Subscription'}
                     </Button>
                   ) : (
                     <Button disabled className="w-full" variant="outline">

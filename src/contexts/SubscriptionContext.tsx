@@ -33,11 +33,27 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [loading, setLoading] = useState(true);
 
   const refreshSubscription = async () => {
-    if (!user) return;
+    if (!user) {
+      setSubscription({
+        subscribed: false,
+        subscription_tier: 'starter',
+        subscription_end: null,
+        is_admin: false
+      });
+      return;
+    }
     
     try {
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session) return;
+      if (!session.session) {
+        setSubscription({
+          subscribed: false,
+          subscription_tier: 'starter',
+          subscription_end: null,
+          is_admin: false
+        });
+        return;
+      }
 
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
@@ -54,10 +70,26 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           is_admin: false
         });
       } else {
-        setSubscription(data);
+        // Check if user is admin
+        const { data: adminCheck } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+
+        setSubscription({
+          ...data,
+          is_admin: !!adminCheck
+        });
       }
     } catch (error) {
       console.error('Error refreshing subscription:', error);
+      setSubscription({
+        subscribed: false,
+        subscription_tier: 'starter',
+        subscription_end: null,
+        is_admin: false
+      });
     }
   };
 
