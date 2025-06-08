@@ -8,12 +8,45 @@ const Build = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleCreateProject = (projectType: string) => {
-    toast({
-      title: "Creating Project",
-      description: `Starting a new ${projectType} project...`,
-    });
+  const handleCreateProject = (projectType: string, projectId: string) => {
     console.log(`Creating new ${projectType} project`);
+    
+    // Navigate to different builders based on project type
+    switch (projectId) {
+      case 'react-app':
+        navigate('/build/react-app');
+        toast({
+          title: "React App Builder",
+          description: "Setting up your React application builder...",
+        });
+        break;
+      case 'landing-page':
+        navigate('/build/landing-page');
+        toast({
+          title: "Landing Page Builder",
+          description: "Opening the landing page builder...",
+        });
+        break;
+      case 'portfolio':
+        navigate('/build/portfolio');
+        toast({
+          title: "Portfolio Builder",
+          description: "Loading the portfolio site builder...",
+        });
+        break;
+      case 'dashboard':
+        navigate('/build/dashboard');
+        toast({
+          title: "Dashboard Builder",
+          description: "Initializing the dashboard app builder...",
+        });
+        break;
+      default:
+        toast({
+          title: "Creating Project",
+          description: `Starting a new ${projectType} project...`,
+        });
+    }
   };
 
   const projectTypes = [
@@ -85,7 +118,7 @@ const Build = () => {
               <p className="text-brand-gray mb-6 leading-relaxed">{project.description}</p>
               
               <Button 
-                onClick={() => handleCreateProject(project.title)}
+                onClick={() => handleCreateProject(project.title, project.id)}
                 className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90"
               >
                 <Plus className="mr-2 h-4 w-4" />
