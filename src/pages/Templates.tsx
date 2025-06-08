@@ -8,12 +8,41 @@ const Templates = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleDownload = (templateName: string) => {
-    toast({
-      title: "Download Started",
-      description: `Downloading ${templateName} template...`,
-    });
-    // Simulate download - in real app, this would trigger actual file download
+  const handleDownload = (templateName: string, templateId: number) => {
+    // Create a mock downloadable file for each template
+    const templateFiles = {
+      1: { name: 'ecommerce-template.zip', content: 'E-commerce Store Template Files' },
+      2: { name: 'portfolio-template.zip', content: 'Portfolio Website Template Files' },
+      3: { name: 'mobile-app-template.zip', content: 'Mobile App UI Template Files' },
+      4: { name: 'business-landing-template.zip', content: 'Business Landing Template Files' },
+      5: { name: 'blog-platform-template.zip', content: 'Blog Platform Template Files' },
+      6: { name: 'saas-dashboard-template.zip', content: 'SaaS Dashboard Template Files' }
+    };
+
+    const template = templateFiles[templateId as keyof typeof templateFiles];
+    
+    if (template) {
+      // Create a downloadable blob
+      const blob = new Blob([template.content], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = template.name;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Started",
+        description: `${templateName} template downloaded successfully!`,
+      });
+    }
+    
     console.log(`Downloading template: ${templateName}`);
   };
 
@@ -171,7 +200,7 @@ const Templates = () => {
                     Preview
                   </Button>
                   <Button 
-                    onClick={() => handleDownload(template.title)}
+                    onClick={() => handleDownload(template.title, template.id)}
                     size="sm"
                     className="flex-1 bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90"
                   >

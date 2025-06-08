@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, Menu, X, LogOut, Settings } from 'lucide-react';
@@ -49,6 +48,11 @@ const Header = () => {
   const handleAuthClick = () => {
     console.log('Auth button clicked, navigating to /auth');
     navigate('/auth');
+  };
+
+  const handleStartCoding = () => {
+    console.log('Start Coding button clicked, navigating to /build');
+    navigate('/build');
   };
 
   const handlePricingClick = () => {
@@ -210,7 +214,7 @@ const Header = () => {
                 <Button variant="outline" onClick={handleAuthClick} className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
                   Sign In
                 </Button>
-                <Button onClick={handleAuthClick} className="bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90">
+                <Button onClick={handleStartCoding} className="bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90">
                   Start Coding
                 </Button>
               </>
@@ -287,7 +291,7 @@ const Header = () => {
                 ) : (
                   <>
                     <Button variant="outline" onClick={handleAuthClick} className="w-full mb-2">Sign In</Button>
-                    <Button onClick={handleAuthClick} className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white">
+                    <Button onClick={handleStartCoding} className="w-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white">
                       Start Coding
                     </Button>
                   </>

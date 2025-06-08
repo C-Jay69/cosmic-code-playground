@@ -11,6 +11,7 @@ import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
 import Demo from "./pages/Demo";
 import Templates from "./pages/Templates";
+import Build from "./pages/Build";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

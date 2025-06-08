@@ -10,16 +10,16 @@ const HeroSection = () => {
   const handleStartBuilding = () => {
     console.log('Start Building button clicked');
     try {
-      navigate('/auth');
+      navigate('/build');
       toast({
-        title: "Get Started",
-        description: "Sign up or log in to start building amazing projects!",
+        title: "Ready to Build",
+        description: "Choose your project type to get started!",
       });
     } catch (error) {
       console.error('Navigation error:', error);
       toast({
         title: "Navigation Error",
-        description: "There was an issue navigating to the auth page.",
+        description: "There was an issue navigating to the build page.",
         variant: "destructive",
       });
     }
