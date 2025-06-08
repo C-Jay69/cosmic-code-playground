@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Code, Globe, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,14 +7,14 @@ const TemplatesSection = () => {
 
   const handleUseTemplate = (templateTitle: string) => {
     console.log(`Use Template button clicked for: ${templateTitle}`);
-    // Navigate to auth page to start using templates
-    navigate('/auth');
+    // Navigate to templates page to browse and download
+    navigate('/templates');
   };
 
   const handleViewAllTemplates = () => {
     console.log('View All Templates button clicked');
-    // Navigate to auth page to access all templates
-    navigate('/auth');
+    // Navigate to templates page
+    navigate('/templates');
   };
 
   const templates = [

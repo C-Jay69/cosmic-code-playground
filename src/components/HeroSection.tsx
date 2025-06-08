@@ -12,8 +12,8 @@ const HeroSection = () => {
     try {
       navigate('/auth');
       toast({
-        title: "Navigating to Auth",
-        description: "Taking you to the login page...",
+        title: "Get Started",
+        description: "Sign up or log in to start building amazing projects!",
       });
     } catch (error) {
       console.error('Navigation error:', error);
@@ -27,18 +27,17 @@ const HeroSection = () => {
 
   const handleViewDemo = () => {
     console.log('View Demo button clicked');
-    // For now, scroll to features section and show a toast explaining
-    const featuresSection = document.getElementById('features');
-    if (featuresSection) {
-      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    try {
+      navigate('/demo');
       toast({
-        title: "Demo Preview",
-        description: "Check out our powerful features below! Full interactive demo coming soon.",
+        title: "Loading Demo",
+        description: "Taking you to our interactive demo!",
       });
-    } else {
+    } catch (error) {
+      console.error('Navigation error:', error);
       toast({
-        title: "Demo Not Available",
-        description: "Interactive demo is coming soon! Please explore our features instead.",
+        title: "Navigation Error",
+        description: "There was an issue loading the demo.",
         variant: "destructive",
       });
     }
