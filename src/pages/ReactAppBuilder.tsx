@@ -1,16 +1,14 @@
 
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Play, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { PreviewPane } from '@/components/PreviewPane';
 import { AIPromptSection } from '@/components/AIPromptSection';
+import { PageHeader } from '@/components/PageHeader';
+import { FeaturesGrid } from '@/components/FeaturesGrid';
 import { generateReactCode } from '@/utils/aiCodeGenerator';
 
 const ReactAppBuilder = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   
   const [code, setCode] = useState(`import React, { useState } from 'react';
@@ -155,73 +153,22 @@ export default App;`);
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-brand-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/build')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Build
-        </Button>
+        <PageHeader onRunCode={handleRunCode} onSaveProject={handleSaveProject} />
 
-        <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-brand-purple to-brand-cyan rounded-xl flex items-center justify-center mr-4">
-                <span className="text-2xl">🚀</span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-brand-gray">React App Builder</h1>
-                <p className="text-brand-gray">Build and preview your React application in real-time</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleRunCode} className="bg-green-600 hover:bg-green-700">
-                <Play className="mr-2 h-4 w-4" />
-                Run Code
-              </Button>
-              <Button onClick={handleSaveProject} variant="outline">
-                <Save className="mr-2 h-4 w-4" />
-                Save Project
-              </Button>
-            </div>
-          </div>
+        <AIPromptSection 
+          onGenerate={handleGenerateCode}
+          isGenerating={isGenerating}
+        />
 
-          <AIPromptSection 
-            onGenerate={handleGenerateCode}
-            isGenerating={isGenerating}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <CodeEditor 
+            code={code}
+            onChange={setCode}
           />
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <CodeEditor 
-              code={code}
-              onChange={setCode}
-            />
-            <PreviewPane previewHtml={previewHtml} />
-          </div>
+          <PreviewPane previewHtml={previewHtml} />
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-brand-gray mb-4">✨ Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-brand-gray">
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h3 className="font-semibold mb-2">🤖 AI Code Generation</h3>
-              <p>Describe your app in plain English and let AI generate the code for you instantly.</p>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-semibold mb-2">⚡ Live Preview</h3>
-              <p>See your React app rendered in real-time as you make changes to the code.</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h3 className="font-semibold mb-2">📝 Code Editor</h3>
-              <p>Edit your React components with JSX syntax highlighting and validation.</p>
-            </div>
-            <div className="p-4 bg-orange-50 rounded-lg">
-              <h3 className="font-semibold mb-2">💾 Export & Save</h3>
-              <p>Download your code as a file to continue development in your local environment.</p>
-            </div>
-          </div>
-        </div>
+        <FeaturesGrid />
       </div>
     </div>
   );
